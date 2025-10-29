@@ -3,7 +3,7 @@ USE obligatorio;
 INSERT INTO obligatorio.login (correo, password, tipo_usuario)
 VALUES ('agusm123@correo.com', '12345', 'admin'),
        ('matedif123@correo.com', 'abcd', 'admin'),
-       ('fabrir123@correo.com', 'qwerty', 'user');
+       ('fabrir123@correo.com', 'qwerty', 'usuario');
 
 INSERT INTO obligatorio.participante(ci, nombre, apellido, email)
 VALUES ('12345678', 'Matias', 'Hernandez', 'matiher123@correo.com'),
