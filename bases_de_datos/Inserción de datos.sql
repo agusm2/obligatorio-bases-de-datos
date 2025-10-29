@@ -1,6 +1,5 @@
 USE obligatorio;
 
-
 INSERT INTO obligatorio.login (correo, password, tipo_usuario)
 VALUES ('agusm123@correo.com', '12345', 'admin'),
        ('matedif123@correo.com', 'abcd', 'admin'),
@@ -47,9 +46,9 @@ VALUES ('Sala 1','Central', '2025-11-10', 1, 'activa'),
        ('Sala 3','UTP', '2025-12-25', 3, 'sin asistencia');
 
 INSERT INTO obligatorio.reserva_participante(ci_participante, id_reserva, fecha_solicitud_reserva, asistencia)
-VALUES ('12345678', 1, '2025-11-05 09:30:00', 'true'),
-       ('87654321', 2, '2025-12-10 14:00:00', 'false'),
-       ('02345678', 3, '2025-12-31 23:00:00', 'true');
+VALUES ('12345678', 1, '2025-11-05 09:30:00', true),
+       ('87654321', 2, '2025-12-10 14:00:00', false),
+       ('02345678', 3, '2025-12-31 23:00:00', true);
 
 INSERT INTO obligatorio.sancion_participante(ci_participante, fecha_inicio, fecha_fin)
 VALUES ('12345678', '2025-10-30', '2025-11-05'),

@@ -93,7 +93,7 @@ CREATE TABLE Reserva_participante
     ci_participante         CHAR(8),
     id_reserva              INT      NOT NULL,
     fecha_solicitud_reserva DATETIME NOT NULL,
-    asistencia              ENUM ('true', 'false'),
+    asistencia              BOOLEAN DEFAULT FALSE,
     PRIMARY KEY (ci_participante, id_reserva),
     FOREIGN KEY (ci_participante) REFERENCES Participante (ci),
     FOREIGN KEY (id_reserva) REFERENCES Reserva (id_reserva)
