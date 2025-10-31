@@ -97,11 +97,32 @@ SELECT IF(estado IN ('cancelada', 'sin asistencia'), 'Canceladas/ no asisitdas',
 FROM reserva
 GROUP BY categoria;
 
--- 9. Consulta sugerida I
+-- Consultas sugeridas:
+-- Permite identificar cuántos participantes fueron sancionados más de una vez
+SELECT 
+    ci_participante,
+    COUNT(*) AS cantidad_sanciones
+FROM sancion_participante
+GROUP BY ci_participante
+HAVING COUNT(*) > 1;
 
+-- Detecta los usuarios que más cancelan o no asisten a sus reservas.
+SELECT 
+    rp.ci_participante,
+    COUNT(*) AS reservas_no_utilizadas
+FROM reserva_participante rp
+JOIN reserva r ON rp.id_reserva = r.id_reserva
+WHERE r.estado IN ('cancelada', 'sin asistencia')
+GROUP BY rp.ci_participante
+ORDER BY reservas_no_utilizadas DESC;
 
--- 10. Consulta sugerida II
-
-
--- 11. Consulta sugerida III
-
+-- Permite identificar qué salas tienen menor uso
+SELECT 
+    s.nombre_sala,
+    s.edificio,
+    COUNT(r.id_reserva) AS cantidad_reservas
+FROM sala s
+LEFT JOIN reserva r 
+    ON s.nombre_sala = r.nombre_sala AND s.edificio = r.edificio
+GROUP BY s.nombre_sala, s.edificio
+ORDER BY cantidad_reservas ASC;
