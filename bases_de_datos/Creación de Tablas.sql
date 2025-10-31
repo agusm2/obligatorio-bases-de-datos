@@ -107,3 +107,7 @@ CREATE TABLE Sancion_participante
     PRIMARY KEY (ci_participante, fecha_inicio, fecha_fin),
     FOREIGN KEY (ci_participante) REFERENCES Participante (ci)
 );
+
+CREATE USER 'obligatorio'@'%' IDENTIFIED BY 'obligatorio1234';
+GRANT SELECT, INSERT, UPDATE, DELETE ON obligatorio.* TO 'obligatorio'@'%';
+FLUSH PRIVILEGES;
