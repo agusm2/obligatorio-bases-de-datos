@@ -81,7 +81,7 @@ CREATE TABLE Reserva
     edificio    VARCHAR(50) NOT NULL,
     fecha       DATE        NOT NULL,
     id_turno    INT         NOT NULL,
-    estado      ENUM ('activa', 'cancelada', 'sin asistencia', 'finalizada'),
+    estado      ENUM ('activa', 'cancelada', 'sin asistencia', 'finalizada') default 'activa',
     PRIMARY KEY (id_reserva),
     FOREIGN KEY (nombre_sala, edificio) REFERENCES Sala (nombre_sala, edificio),
     FOREIGN KEY (edificio) REFERENCES Edificio (nombre_edificio),
@@ -102,7 +102,7 @@ CREATE TABLE Reserva_participante
 CREATE TABLE Sancion_participante
 (
     ci_participante CHAR(8) NOT NULL,
-    fecha_inicio    DATE    NOT NULL,
+    fecha_inicio DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_fin       DATE    NOT NULL,
     PRIMARY KEY (ci_participante, fecha_inicio, fecha_fin),
     FOREIGN KEY (ci_participante) REFERENCES Participante (ci)
