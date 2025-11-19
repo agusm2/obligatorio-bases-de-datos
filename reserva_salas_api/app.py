@@ -7,13 +7,9 @@ from routes.reservation import reservations_bp
 
 app = Flask(__name__)
 
-<<<<<<< Updated upstream
 CORS(app, resources={r"/*": {"origins": "http://localhost:5173"}})
 
-# Registrar rutas
-=======
 # Register blueprints
->>>>>>> Stashed changes
 app.register_blueprint(classroom_bp)
 app.register_blueprint(participant_bp)
 app.register_blueprint(reservations_bp)
