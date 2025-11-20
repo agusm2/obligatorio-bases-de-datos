@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
+import { useAuth } from "../contexts/AuthContext";
 
 export default function User() {
   const [sala, setSala] = useState("");
@@ -9,14 +10,15 @@ export default function User() {
   const [fecha, setFecha] = useState("");
   const [horario, setHorario] = useState("");
   const navigate = useNavigate();
+  const { logout, user } = useAuth();
 
   const handleSubmit = async (e) => {
     //Acá valido datos y hago el POST si esta todo OK
   };
 
   function handleLogout() {
+    logout();
     navigate("/");
-    //Función para cerrar sesión (ver de hacer una global y reutilizarla)
   }
 
   return (
@@ -34,7 +36,6 @@ export default function User() {
           justifyContent: "center",
         }}
       >
-        {/* <h3>Reservar sala</h3> */}
 
         <Form
           onSubmit={handleSubmit}
