@@ -45,3 +45,21 @@ def delete(name, building):
         return jsonify(result), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 400
+
+
+@classroom_bp.route('/<string:name>/<string:building>/available', methods=['GET'])
+def available_turns(name, building):
+    """Return available turns for a classroom on a given date.
+
+    Query param: date=YYYY-MM-DD (required)
+    """
+    date_str = request.args.get('date')
+    if not date_str:
+        return jsonify({'error': 'date query param is required (YYYY-MM-DD)'}), 400
+    try:
+        rows = classroom_service.get_available_turns(date_str, classroom_name=name, building=building)
+        return jsonify(rows), 200
+    except ValueError as ve:
+        return jsonify({'error': str(ve)}), 400
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400

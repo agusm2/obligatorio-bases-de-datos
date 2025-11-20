@@ -1,5 +1,6 @@
 import mysql.connector
 from database.db import get_db_connection
+from datetime import datetime
 
 class Classroom:
     ALLOWED_ROOM_TYPES = ('libre', 'posgrado', 'docente')
@@ -125,7 +126,70 @@ class Classroom:
             cur.close()
             conn.close()
         return True
+    
+    @classmethod
+    def get_available_turns(cls, date_str, classroom_name, building):
+        """Return available turns for a specific classroom and building on a date.
 
+        date_str: 'YYYY-MM-DD'
+        classroom_name, building: strings matching Sala(nombre_sala, edificio)
+        Returns list of dicts with id_turno, hora_inicio, hora_fin
+        """
+        # validate date format (YYYY-MM-DD)
+        try:
+            date_obj = datetime.strptime(date_str, '%Y-%m-%d').date()
+        except ValueError:
+            raise ValueError('date must be YYYY-MM-DD')
+
+        if not classroom_name or not building:
+            raise ValueError('classroom_name and building are required')
+
+        conn = get_db_connection()
+        cur = conn.cursor(dictionary=True)
+        try:
+            cur.execute(
+                """
+                SELECT t.id_turno, t.hora_inicio, t.hora_fin
+                FROM Turno t
+                LEFT JOIN Reserva r
+                  ON r.id_turno = t.id_turno AND r.fecha = %s AND r.nombre_sala = %s AND r.edificio = %s
+                WHERE r.id_reserva IS NULL
+                ORDER BY t.hora_inicio
+                """,
+                (date_obj, classroom_name, building)
+            )
+            rows = cur.fetchall()
+
+            def _fmt_time(v):
+                """Format a time-like value as 'HH:MM', removing seconds if present.
+
+                Handles datetime.time/datetime.datetime objects and strings like '08:30:00'.
+                Returns None if v is None.
+                """
+                if v is None:
+                    return None
+                if hasattr(v, 'strftime'):
+                    return v.strftime('%H:%M')
+                s = str(v)
+                if ':' in s:
+                    parts = s.split(':')
+                    if len(parts) >= 2:
+                        return f"{parts[0].zfill(2)}:{parts[1].zfill(2)}"
+                return s
+
+            result = [
+                {
+                    'id_turno': r['id_turno'],
+                    'hora_inicio': _fmt_time(r.get('hora_inicio')),
+                    'hora_fin': _fmt_time(r.get('hora_fin')),
+                }
+                for r in rows
+            ]
+        finally:
+            cur.close()
+            conn.close()
+        return result
+    
     def __eq__(self, other):
         if not isinstance(other, Classroom):
             return NotImplemented

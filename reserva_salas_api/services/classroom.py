@@ -50,3 +50,10 @@ def delete(classroom_id):
         return None
     obj.delete()
     return {'message': 'Eliminada'}
+
+def get_available_turns(date_str, classroom_name=None, building=None):
+    """Delegate to Classroom model to get available turns for a classroom on a date.
+
+    Requires classroom_name and building.
+    """
+    return Classroom.get_available_turns(date_str, classroom_name, building)
