@@ -66,7 +66,6 @@ export default function ABMSalas() {
   async function getSalas() {
     const res = await fetch("http://localhost:5000/classroom/");
     const data = await res.json();
-    console.log(data);
     setSalas(data);
   }
 
@@ -230,7 +229,7 @@ export default function ABMSalas() {
         <Modal.Body>
           <Form>
             <Form.Group>
-              <Form.Label>Ingrese nueva capacidad</Form.Label>
+              <Form.Label>Actualizar capacidad</Form.Label>
               <Form.Control
                 type="number"
                 name="capacity"
@@ -239,7 +238,7 @@ export default function ABMSalas() {
               />
             </Form.Group>
             <Form.Group>
-              <Form.Label>Ingrese nuevo tipo de sala</Form.Label>
+              <Form.Label>Actualizar tipo de sala</Form.Label>
               <Form.Control
                 type="text"
                 name="room_type"
