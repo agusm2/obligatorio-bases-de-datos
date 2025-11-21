@@ -29,7 +29,7 @@ class Reservation:
         self.estado = estado
 
     def to_dict(self):
-        return {
+        data = {
             'id_reserva': self.id_reserva,
             'nombre_sala': self.nombre_sala,
             'edificio': self.edificio,
@@ -37,6 +37,11 @@ class Reservation:
             'id_turno': self.id_turno,
             'estado': self.estado
         }
+        # Añadir participantes si están presentes en la instancia
+        participants = getattr(self, 'participants', None)
+        if participants is not None:
+            data['participants'] = participants
+        return data
 
     @classmethod
     def from_row(cls, row):
@@ -54,7 +59,10 @@ class Reservation:
         return cls(id_reserva=id_reserva, nombre_sala=nombre, edificio=edificio, fecha=fecha, id_turno=id_turno, estado=estado)
 
     @classmethod
-    def create(cls, nombre_sala, edificio, fecha, id_turno, estado='activa'):
+    def create(cls, nombre_sala, edificio, fecha, id_turno, estado='activa', participants=None):
+        """Crear reserva. Si se pasa `participants` (lista de CI strings), se relacionan
+        con la reserva creada (fecha_solicitud_reserva = now, asistencia=False por defecto).
+        """
         obj = cls(None, nombre_sala, edificio, fecha, id_turno, estado)
         conn = get_db_connection()
         cur = conn.cursor()
@@ -70,6 +78,21 @@ class Reservation:
         finally:
             cur.close()
             conn.close()
+
+        # Si se pasaron participantes, agregarlos (usa add_participant que maneja la inserción individual)
+        if participants:
+            try:
+                for ci in participants:
+                    # add_participant hará validaciones (sanciones, FK, capacidad, etc)
+                    obj.add_participant(ci_participante=ci)
+            except Exception:
+                # limpiar reserva creada para no dejar estado parcial
+                try:
+                    obj.delete()
+                except Exception:
+                    pass
+                raise
+
         return obj
 
     @classmethod
@@ -100,9 +123,59 @@ class Reservation:
         finally:
             cur.close()
             conn.close()
-        return [cls.from_row(r) for r in rows]
+        # Si no hay filas, devolvemos lista vacía
+        if not rows:
+            return []
 
-    def update(self, nombre_sala=None, edificio=None, fecha=None, id_turno=None, estado=None):
+        # Instancias de Reservation para las filas obtenidas
+        reservations = [cls.from_row(r) for r in rows]
+
+        # Recolectar todos los ids de reserva para consultar participantes en una sola consulta
+        ids = [r['id_reserva'] for r in rows]
+
+        # Obtener participantes y asistencia para todas las reservas obtenidas
+        conn = get_db_connection()
+        cur = conn.cursor(dictionary=True)
+        try:
+            placeholders = ','.join(['%s'] * len(ids))
+            query = (
+                "SELECT rp.id_reserva, rp.ci_participante, rp.fecha_solicitud_reserva, rp.asistencia, "
+                "p.nombre, p.apellido, p.email "
+                "FROM reserva_participante rp LEFT JOIN Participante p ON rp.ci_participante = p.ci "
+                f"WHERE rp.id_reserva IN ({placeholders})"
+            )
+            cur.execute(query, tuple(ids))
+            part_rows = cur.fetchall()
+        finally:
+            cur.close()
+            conn.close()
+
+        # Mapear participantes por id_reserva
+        participants_map = {}
+        for pr in part_rows:
+            rid = pr['id_reserva']
+            fecha_sol = pr.get('fecha_solicitud_reserva')
+            # convertir fecha a ISO si es datetime
+            if hasattr(fecha_sol, 'isoformat'):
+                fecha_sol = fecha_sol.isoformat()
+            entry = {
+                'ci_participante': pr.get('ci_participante'),
+                'fecha_solicitud_reserva': fecha_sol,
+                'asistencia': bool(pr.get('asistencia')),
+                'nombre': pr.get('nombre'),
+                'apellido': pr.get('apellido'),
+                'email': pr.get('email')
+            }
+            participants_map.setdefault(rid, []).append(entry)
+
+        # Adjuntar la lista de participantes a cada instancia Reservation
+        for res in reservations:
+            # atributo dinámico `participants` con lista de dicts (vacía si no hay participantes)
+            res.participants = participants_map.get(res.id_reserva, [])
+
+        return reservations
+
+    def update(self, nombre_sala=None, edificio=None, fecha=None, id_turno=None, estado=None, participants=None):
         new_nombre = nombre_sala if nombre_sala is not None else self.nombre_sala
         new_edificio = edificio if edificio is not None else self.edificio
         new_fecha = fecha if fecha is not None else self.fecha
@@ -129,6 +202,29 @@ class Reservation:
         finally:
             cur.close()
             conn.close()
+        # Si se recibe una lista `participants`, sincronizar la relación:
+        # - añadir los CI que estén en `participants` y no en la relación actual
+        # - eliminar los CI que estén en la relación actual y no en `participants`
+        if participants is not None:
+            # obtener participantes actuales (list_participants devuelve dicts)
+            current = [p.get('ci_participante') for p in self.list_participants()]
+            # normalizar a strings
+            current_set = set(filter(None, map(str, current)))
+            new_set = set(filter(None, map(str, participants)))
+
+            to_add = new_set - current_set
+            to_remove = current_set - new_set
+
+            for ci in to_add:
+                try:
+                    self.add_participant(ci_participante=ci)
+                except mysql.connector.IntegrityError:
+                    # propagar o ignorar? dejamos propagar para que la capa superior decida
+                    raise
+
+            for ci in to_remove:
+                self.remove_participant(ci)
+
         return self
 
     def delete(self):
@@ -151,12 +247,21 @@ class Reservation:
         conn = get_db_connection()
         cur = conn.cursor()
         try:
+            # comprobar si el participante está sancionado en la fecha de la reserva
+            cur.execute(
+                "SELECT 1 FROM Sancion_participante WHERE ci_participante=%s AND fecha_inicio <= %s AND fecha_fin >= %s",
+                (ci_participante, self.fecha, self.fecha)
+            )
+            if cur.fetchone():
+                raise ValueError('Participant has an active sanction for this date')
+
             cur.execute(
                 "INSERT INTO reserva_participante (ci_participante, id_reserva, fecha_solicitud_reserva, asistencia) VALUES (%s,%s,%s,%s)",
                 (ci_participante, self.id_reserva, fecha_solicitud, int(bool(asistencia)))
             )
             conn.commit()
         except mysql.connector.IntegrityError:
+            conn.rollback()
             raise
         finally:
             cur.close()
