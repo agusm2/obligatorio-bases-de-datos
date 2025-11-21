@@ -28,13 +28,20 @@ def create(data):
     name = data.get('name')
     surname = data.get('surname')
     email = data.get('email')
+    password = data.get('password')
 
     # Si ya existe, devolvemos None para que la capa de rutas maneje el 409
     obj = Participant.get_by_pk(ci)
     if obj:
         return None
-    obj = Participant.create(ci, name, surname, email)
-    return obj.to_dict()
+
+    programas = data.get('programas')  # opcional
+    obj = Participant.create(ci, name, surname, email, programas=programas, password=password)
+
+    # devolver representación incluyendo programas (si existen)
+    result = obj.to_dict()
+    result['programas'] = Participant.get_programs(ci)
+    return result
 
 
 def update(ci, data):

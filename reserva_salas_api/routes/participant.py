@@ -22,6 +22,8 @@ def create():
         return jsonify({'error': 'Email inválido'}), 400
     try:
         obj = participant_service.create(data)
+        if obj is None:
+            return jsonify({'error': 'El participante ya existe'}), 409
         return jsonify(obj), 201
     except Exception as e:
         return jsonify({'error': str(e)}), 400

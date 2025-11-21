@@ -81,9 +81,17 @@ class Reservation:
 
         # Si se pasaron participantes, agregarlos (usa add_participant que maneja la inserción individual)
         if participants:
-            for ci in participants:
-                # Propagar errores de integridad hacia arriba para que la capa del servicio decida
-                obj.add_participant(ci_participante=ci)
+            try:
+                for ci in participants:
+                    # add_participant hará validaciones (sanciones, FK, capacidad, etc)
+                    obj.add_participant(ci_participante=ci)
+            except Exception:
+                # limpiar reserva creada para no dejar estado parcial
+                try:
+                    obj.delete()
+                except Exception:
+                    pass
+                raise
 
         return obj
 
@@ -239,12 +247,21 @@ class Reservation:
         conn = get_db_connection()
         cur = conn.cursor()
         try:
+            # comprobar si el participante está sancionado en la fecha de la reserva
+            cur.execute(
+                "SELECT 1 FROM Sancion_participante WHERE ci_participante=%s AND fecha_inicio <= %s AND fecha_fin >= %s",
+                (ci_participante, self.fecha, self.fecha)
+            )
+            if cur.fetchone():
+                raise ValueError('Participant has an active sanction for this date')
+
             cur.execute(
                 "INSERT INTO reserva_participante (ci_participante, id_reserva, fecha_solicitud_reserva, asistencia) VALUES (%s,%s,%s,%s)",
                 (ci_participante, self.id_reserva, fecha_solicitud, int(bool(asistencia)))
             )
             conn.commit()
         except mysql.connector.IntegrityError:
+            conn.rollback()
             raise
         finally:
             cur.close()

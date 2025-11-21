@@ -41,23 +41,77 @@ class Participant:
         return cls(ci=ci, name=nombre, surname=apellido, email=email)
 
     @classmethod
-    def create(cls, ci, name, surname, email=None):
+    def create(cls, ci, name, surname, email=None, programas=None, password=None, tipo_usuario='usuario'):
+        """Crea un participante y opcionalmente sus relaciones a programas.
+
+        Si se pasa `password` se intentará crear además el usuario en la tabla
+        `Login` usando el `email` como `correo` y `tipo_usuario`.
+
+        programas: lista de dicts o tuplas con ('nombre_programa', 'rol') o
+                   dicts {'nombre_programa':..., 'rol': ...}.
+        """
         obj = cls(ci, name, surname, email)
         conn = get_db_connection()
         cur = conn.cursor()
         try:
+            # Insert participante
             cur.execute(
                 "INSERT INTO Participante (ci, nombre, apellido, email) VALUES (%s,%s,%s,%s)",
                 (obj.ci, obj.name, obj.surname, obj.email)
             )
+
+            # Si vienen programas, insertarlos en la misma transacción
+            if programas:
+                for p in programas:
+                    if isinstance(p, dict):
+                        nombre_programa = p.get('nombre_programa') or p.get('nombre')
+                        rol = p.get('rol')
+                    else:
+                        # asumir tupla/lista (nombre_programa, rol)
+                        nombre_programa, rol = p
+                    cur.execute(
+                        "INSERT INTO Participante_programa_academico (ci_participante, nombre_programa, rol) VALUES (%s,%s,%s)",
+                        (obj.ci, nombre_programa, rol)
+                    )
+
+            # Si se proporciona password, crear también el login (usa email como correo)
+            if password is not None:
+                if not obj.email:
+                    # No tiene email para usar como login -> considerarlo error del caller
+                    raise ValueError('email es obligatorio para crear el Login cuando se pasa password')
+                cur.execute(
+                    "INSERT INTO Login (correo, password, tipo_usuario) VALUES (%s, %s, %s)",
+                    (obj.email, password, tipo_usuario)
+                )
+
             conn.commit()
         except mysql.connector.IntegrityError:
-            # Propagar para que la capa superior pueda decidir (409/400)
+            # rollback and rethrow for service layer to translate (e.g., 409)
+            conn.rollback()
             raise
         finally:
             cur.close()
             conn.close()
         return obj
+
+    @classmethod
+    def get_programs(cls, ci):
+        """Devuelve la lista de programas asociados al participante (nombre_programa, tipo, rol)."""
+        conn = get_db_connection()
+        cur = conn.cursor(dictionary=True)
+        try:
+            cur.execute(
+                "SELECT ppa.nombre_programa AS nombre_programa, pa.tipo AS tipo, ppa.rol AS rol "
+                "FROM Participante_programa_academico ppa "
+                "LEFT JOIN Programa_academico pa ON ppa.nombre_programa = pa.nombre_programa "
+                "WHERE ppa.ci_participante = %s",
+                (ci,)
+            )
+            rows = cur.fetchall()
+        finally:
+            cur.close()
+            conn.close()
+        return rows
 
     @classmethod
     def get_by_pk(cls, ci):
