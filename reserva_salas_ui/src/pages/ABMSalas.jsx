@@ -143,7 +143,7 @@ export default function ABMSalas() {
 
   return (
     <>
-      <h2>Salas</h2>
+      <h2 style={{textAlign: "center", marginTop: 30}}>Salas</h2>
       <div style={{ width: "50%", margin: "0 auto", padding: 0 }}>
         <Table
           striped

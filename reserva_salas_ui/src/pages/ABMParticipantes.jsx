@@ -6,6 +6,7 @@ import Form from "react-bootstrap/Form";
 
 import pencilImg from "../assets/pencil-solid-full.svg";
 import trashImg from "../assets/trash-solid-full.svg";
+
 import { useEffect, useState } from "react";
 
 export default function ABMParticipantes() {
@@ -135,8 +136,8 @@ export default function ABMParticipantes() {
 
   return (
     <>
-      <h2>Participantes</h2>
-      <div style={{ width: "50%", margin: "0 auto", padding: 0 }}>
+      <h2 style={{textAlign: "center", marginTop: 30}}>Participantes</h2>
+      <div style={{ width: "60%", margin: "0 auto", padding: 0 }}>
         <Table
           striped
           bordered
@@ -153,6 +154,7 @@ export default function ABMParticipantes() {
               <th>Mail</th>
               <th>Programa</th>
               <th>Tipo</th>
+              <th>Rol</th>
               <th style={{ textAlign: "center" }}>Editar/Eliminar</th>
             </tr>
           </thead>
@@ -165,6 +167,7 @@ export default function ABMParticipantes() {
                 <td>{p.email}</td>
                 <td>{p.programa}</td>
                 <td>{p.tipo}</td>
+                <td>Aca va rol</td>
                 <td
                   style={{
                     display: "flex",
@@ -257,12 +260,32 @@ export default function ABMParticipantes() {
               />
             </Form.Group>
 
-            <Form.Group>
+            <Form.Group className="mb-3">
               <Form.Label>Mail</Form.Label>
               <Form.Control
                 type="email"
                 name="email"
                 value={formData.email}
+                onChange={handleChange}
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>Programa académico (hacer desplegable)</Form.Label>
+              <Form.Control
+                type="text"
+                name="programa"
+                value="modificar formData"
+                onChange={handleChange}
+              />
+            </Form.Group>
+
+            <Form.Group>
+              <Form.Label>Rol (hacer desplegable)</Form.Label>
+              <Form.Control
+                type="text"
+                name="rol"
+                value="modificar formData"
                 onChange={handleChange}
               />
             </Form.Group>

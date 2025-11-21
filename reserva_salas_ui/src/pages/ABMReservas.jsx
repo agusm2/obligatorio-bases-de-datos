@@ -88,7 +88,7 @@ export default function ABMReservas() {
 
   return (
     <>
-      <h2>Reservas</h2>
+      <h2 style={{textAlign: "center", marginTop: 30}}>Reservas</h2>
       <div style={{ width: "50%", margin: "0 auto", padding: 0 }}>
         <Table
           striped

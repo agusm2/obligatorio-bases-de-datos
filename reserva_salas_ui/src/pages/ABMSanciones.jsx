@@ -10,7 +10,7 @@ export default function ABMSanciones() {
 
   return (
     <>
-      <h2>Sanciones</h2>
+      <h2 style={{ textAlign: "center", marginTop: 30 }}>Sanciones</h2>
       <div style={{ width: "50%", margin: "0 auto", padding: 0 }}>
         <Table
           striped
