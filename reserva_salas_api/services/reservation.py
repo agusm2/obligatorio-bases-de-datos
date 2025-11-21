@@ -30,7 +30,10 @@ def create(data):
     if not classroom:
         raise ValueError('Classroom does not exist')
 
-    obj = Reservation.create(nombre_sala=nombre_sala, edificio=edificio, fecha=fecha, id_turno=id_turno)
+    # aceptar lista opcional de participantes (cedulas) en el payload: data['participants']
+    participants = data.get('participants')
+
+    obj = Reservation.create(nombre_sala=nombre_sala, edificio=edificio, fecha=fecha, id_turno=id_turno, participants=participants)
     return obj.to_dict()
 
 
@@ -43,7 +46,8 @@ def update(id_reserva, data):
         edificio=data.get('edificio'),
         fecha=data.get('fecha'),
         id_turno=data.get('id_turno'),
-        estado=data.get('estado')
+        estado=data.get('estado'),
+        participants=data.get('participants')
     )
     return obj.to_dict()
 

@@ -4,7 +4,18 @@ from models.participant import Participant
 def get_all(limit=100, offset=0):
     """Devuelve una lista de participantes paginadas como dicts."""
     items = Participant.list_all(limit=limit, offset=offset)
-    return [c.to_dict() for c in items]
+    result = []
+    for c in items:
+        # Compatibilidad: si el modelo devuelve directamente Participant instances
+        # (antes), o si devolvemos {'participant': Participant, 'programas': [...]}
+        if isinstance(c, dict) and 'participant' in c:
+            participant_obj = c['participant']
+            programas = c.get('programas', [])
+            result.append({**participant_obj.to_dict(), 'programas': programas})
+        else:
+            # asumimos que c es una Participant
+            result.append(c.to_dict())
+    return result
 
 
 def create(data):
@@ -54,3 +65,12 @@ def delete(ci):
         return None
     obj.delete()
     return {'message': 'Eliminada'}
+
+
+def add_sancion(ci, fecha_fin, fecha_inicio=None):
+    """Delegar la creación de sanción al modelo Participant.
+
+    Devuelve dict con los datos de la sanción creada, o None si participante no existe.
+    Puede lanzar ValueError en caso de datos inválidos y mysql.connector.IntegrityError si la BD rechaza la inserción.
+    """
+    return Participant.add_sancion(ci, fecha_fin, fecha_inicio)
