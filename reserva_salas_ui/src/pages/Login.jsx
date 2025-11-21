@@ -13,6 +13,11 @@ export default function Login() {
   const handleLogin = async (e) => {
     e.preventDefault();
 
+    if(user.trim() === "" || passwd.trim() === "") {
+      alert("Se deben llenar todos los campos");
+      return;
+    }
+
     const res = await fetch("http://localhost:5000/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
