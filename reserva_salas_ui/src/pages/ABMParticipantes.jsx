@@ -14,6 +14,8 @@ export default function ABMParticipantes() {
   const [participantes, setParticipantes] = useState([]);
   const [show, setShow] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
+  const [reservas, setReservas] = useState([]);
+  const [programas, setProgramas] = useState([]);
   const [editData, setEditData] = useState({
     ci: "",
     nombre: "",
@@ -25,6 +27,9 @@ export default function ABMParticipantes() {
     name: "",
     surname: "",
     email: "",
+    password: "",
+    programa: "",
+    rol: "",
   });
 
   const handleClose = () => setShow(false);
@@ -61,7 +66,24 @@ export default function ABMParticipantes() {
       name: "",
       surname: "",
       email: "",
+      password: "",
+      programa: "",
+      rol: "",
     });
+  }
+
+  function tieneReservaActiva(ci) {
+    return reservas.some(
+      (r) =>
+        r.estado === "activa" &&
+        r.participants.some((part) => part.ci_participante === ci)
+    );
+  }
+
+  async function getReservas() {
+    const res = await fetch("http://localhost:5000/reservation/");
+    const data = await res.json();
+    setReservas(data);
   }
 
   async function getParticipantes() {
@@ -87,11 +109,25 @@ export default function ABMParticipantes() {
   }
 
   async function createParticipante() {
+    const payload = {
+      ci: formData.ci,
+      name: formData.name,
+      surname: formData.surname,
+      email: formData.email,
+      password: formData.password,
+      programas: [
+        {
+          nombre_programa: formData.programa,
+          rol: formData.rol,
+        },
+      ],
+    };
+
     try {
       const res = await fetch("http://localhost:5000/participant/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       });
 
       if (!res.ok) {
@@ -132,11 +168,12 @@ export default function ABMParticipantes() {
 
   useEffect(() => {
     getParticipantes();
+    getReservas();
   }, []);
 
   return (
     <>
-      <h2 style={{textAlign: "center", marginTop: 30}}>Participantes</h2>
+      <h2 style={{ textAlign: "center", marginTop: 30 }}>Participantes</h2>
       <div style={{ width: "60%", margin: "0 auto", padding: 0 }}>
         <Table
           striped
@@ -165,9 +202,21 @@ export default function ABMParticipantes() {
                 <td>{p.nombre}</td>
                 <td>{p.apellido}</td>
                 <td>{p.email}</td>
-                <td>{p.programa}</td>
-                <td>{p.tipo}</td>
-                <td>Aca va rol</td>
+                <td>
+                  {p.programas && p.programas.length > 0
+                    ? p.programas[0].nombre_programa
+                    : "-"}
+                </td>
+                <td>
+                  {p.programas && p.programas.length > 0
+                    ? p.programas[0].tipo
+                    : "-"}
+                </td>
+                <td>
+                  {p.programas && p.programas.length > 0
+                    ? p.programas[0].rol
+                    : "-"}
+                </td>
                 <td
                   style={{
                     display: "flex",
@@ -191,8 +240,18 @@ export default function ABMParticipantes() {
                   <button
                     style={{ borderRadius: 5 }}
                     onClick={() => {
+                      if (tieneReservaActiva(p.ci)) {
+                        alert(
+                          "No se puede eliminar un participantes con reservas activas"
+                        );
+                        return;
+                      }
+
                       eliminarParticipante(p.ci)
-                        .then(() => getParticipantes())
+                        .then(() => {
+                          getParticipantes();
+                          getReservas();
+                        })
                         .catch((err) => console.error(err));
                     }}
                   >
@@ -231,7 +290,7 @@ export default function ABMParticipantes() {
         <Modal.Body>
           <Form>
             <Form.Group className="mb-3">
-              <Form.Label>CI</Form.Label>
+              <Form.Label>C.I.</Form.Label>
               <Form.Control
                 type="text"
                 name="ci"
@@ -271,23 +330,44 @@ export default function ABMParticipantes() {
             </Form.Group>
 
             <Form.Group className="mb-3">
-              <Form.Label>Programa académico (hacer desplegable)</Form.Label>
+              <Form.Label>Contraseña</Form.Label>
               <Form.Control
                 type="text"
-                name="programa"
-                value="modificar formData"
+                name="password"
+                value={formData.password}
                 onChange={handleChange}
               />
             </Form.Group>
 
-            <Form.Group>
-              <Form.Label>Rol (hacer desplegable)</Form.Label>
-              <Form.Control
-                type="text"
-                name="rol"
-                value="modificar formData"
+            <Form.Group className="mb-3">
+              <Form.Label>Programa académico</Form.Label>
+              <Form.Select
+                name="programa"
+                value={formData.programa}
                 onChange={handleChange}
-              />
+              >
+                <option value="">Seleccione un programa...</option>
+                <option value="Ingeniería informática">
+                  Ingeniería informática
+                </option>
+                <option value="Científico">Científico</option>
+                <option value="Experto en ciberseguridad">
+                  Experto en ciberseguridad
+                </option>
+              </Form.Select>
+            </Form.Group>
+
+            <Form.Group>
+              <Form.Label>Rol</Form.Label>
+              <Form.Select
+                name="rol"
+                value={formData.rol}
+                onChange={handleChange}
+              >
+                <option value="">Seleccione un rol...</option>
+                <option value="alumno">Alumno</option>
+                <option value="docente">Docente</option>
+              </Form.Select>
             </Form.Group>
           </Form>
         </Modal.Body>

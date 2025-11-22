@@ -17,8 +17,6 @@ export default function User() {
   const [turnoId, setTurnoId] = useState("");
   const [turnos, setTurnos] = useState([]);
 
-  const [sancionado, setSancionado] = useState(true);
-
   const [showReservas, setShowReservas] = useState(false);
   const [showParticipantes, setShowParticipantes] = useState(false);
 
@@ -76,7 +74,7 @@ export default function User() {
     const getTurnos = async () => {
       try {
         const res = await fetch(
-          `http://localhost:5000/classroom/${sala.name}/${sala.building}/available?date=${fecha}`
+          `http://localhost:5000/classroom/${sala.nombre_sala}/${sala.edificio}/available?date=${fecha}`
         );
         if (!res.ok) {
           console.log("Error al obtener turnos disponibles");
@@ -98,9 +96,11 @@ export default function User() {
 
   return (
     <>
-      <h1 style={{ textAlign: "center", marginTop: 20 }}>Bienvenido {user}</h1>
+      <h1 style={{ textAlign: "center", marginTop: 20 }}>
+        Bienvenido {user?.correo}
+      </h1>
 
-      {sancionado && (
+      {user?.sancionado && (
         <h2 style={{ textAlign: "center", color: "red" }}>
           Usted está sancionado hasta el DATE
         </h2>
@@ -122,7 +122,7 @@ export default function User() {
             width: "300px",
           }}
         >
-          <fieldset disabled={sancionado}>
+          <fieldset disabled={user?.sancionado}>
             <Form.Group controlId="Sala" className="mb-3">
               <Form.Label>Sala</Form.Label>
               <Form.Select
@@ -217,7 +217,7 @@ export default function User() {
         <Button
           variant="outline-success"
           onClick={handleShowReservas}
-          disabled={sancionado}
+          disabled={user?.sancionado}
         >
           Ver reservas activas
         </Button>
@@ -250,10 +250,3 @@ export default function User() {
     </>
   );
 }
-
-/* 
-Si participantes es > 1 abro modal para llenar datos de todos los participantes adicionales al usuario
-*/
-/* 
-Si user quiere ver las reservas, abro un modal con todas sus reservas, si no tiene le muestro un mensaje indicandole
-*/
