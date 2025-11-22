@@ -6,6 +6,7 @@ import { AuthProvider } from "../contexts/AuthContext";
 import Login from "../pages/Login";
 import Admin from "../pages/Admin";
 import User from "../pages/User";
+import Reportes from "../pages/Reportes";
 import ABMParticipantes from "../pages/ABMParticipantes";
 import ABMSalas from "../pages/ABMSalas";
 import ABMReservas from "../pages/ABMReservas";
@@ -22,54 +23,63 @@ export default function App() {
           <Route
             path="/admin"
             element={
-              /* <ProtectedRoute role="admin"> */
+              <ProtectedRoute role="admin">
                 <Admin />
-              /* </ProtectedRoute> */
+              </ProtectedRoute>
             }
           />
 
           <Route
             path="/admin/participantes"
             element={
-              /* <ProtectedRoute role="admin"> */
+              <ProtectedRoute role="admin">
                 <ABMParticipantes />
-              /* </ProtectedRoute> */
+              </ProtectedRoute>
             }
           />
 
           <Route
             path="/admin/salas"
             element={
-              /* <ProtectedRoute role="admin"> */
+              <ProtectedRoute role="admin">
                 <ABMSalas />
-              /* </ProtectedRoute> */
+              </ProtectedRoute>
             }
           />
 
           <Route
             path="/admin/reservas"
             element={
-              /* <ProtectedRoute role="admin"> */
+              <ProtectedRoute role="admin">
                 <ABMReservas />
-              /* </ProtectedRoute> */
+              </ProtectedRoute>
             }
           />
 
           <Route
             path="/admin/sanciones"
             element={
-              /* <ProtectedRoute role="admin"> */
+              <ProtectedRoute role="admin">
                 <ABMSanciones />
-              /* </ProtectedRoute> */
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/admin/reportes"
+            element={
+              <ProtectedRoute role="admin">
+                <Reportes />
+              </ProtectedRoute>
             }
           />
 
           <Route
             path="/user"
             element={
-              /* <ProtectedRoute role="usuario"> */
+              <ProtectedRoute role="usuario">
                 <User />
-              /* </ProtectedRoute> */
+              </ProtectedRoute>
             }
           />
         </Routes>

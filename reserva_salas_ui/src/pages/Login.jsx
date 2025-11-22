@@ -13,12 +13,12 @@ export default function Login() {
   const handleLogin = async (e) => {
     e.preventDefault();
 
-    if(user.trim() === "" || passwd.trim() === "") {
+    if (user.trim() === "" || passwd.trim() === "") {
       alert("Se deben llenar todos los campos");
       return;
     }
 
-    const res = await fetch(`http://localhost:5000/${user}/login`, {
+    const res = await fetch(`http://localhost:5000/user/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -34,8 +34,8 @@ export default function Login() {
 
     const data = await res.json();
 
-    login(data);
-    if (data.tipo_usuario === "admin") {
+    login(data.user);
+    if (data.user.role === "admin") {
       navigate("/admin");
     } else {
       navigate("/user");

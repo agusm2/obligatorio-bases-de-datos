@@ -66,13 +66,22 @@ export default function Admin() {
           <p>Sanciones</p>
         </button>
       </div>
-      <Button
-        variant="outline-danger"
-        onClick={() => handleLogout()}
-        style={{ marginTop: 30 }}
-      >
-        Cerrar Sesión
-      </Button>
+      <div>
+        <Button
+          variant="outline-danger"
+          onClick={() => handleLogout()}
+          style={{ marginTop: 30, marginRight: 20 }}
+        >
+          Cerrar Sesión
+        </Button>
+        <Button
+          variant="outline-primary"
+          onClick={() => navigate("/admin/reportes")}
+          style={{ marginTop: 30 }}
+        >
+          Reportes
+        </Button>
+      </div>
     </div>
   );
 }
