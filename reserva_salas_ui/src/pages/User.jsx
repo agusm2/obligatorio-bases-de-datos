@@ -177,7 +177,9 @@ export default function User() {
 
       {user?.sancionado && (
         <h2 style={{ textAlign: "center", color: "red" }}>
-          Usted está sancionado hasta el DATE
+          Usted está sancionado hasta el{" "}
+          {new Date(user?.fecha_fin_sancion).toLocaleDateString()}
+          
         </h2>
       )}
 
