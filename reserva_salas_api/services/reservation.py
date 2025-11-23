@@ -96,3 +96,6 @@ def list_participants(id_reserva):
     if not obj:
         return None
     return obj.list_participants()
+
+def update_asistencia(id_reserva, ci_participante, asistencia):
+    return Reservation.update_asistencia(id_reserva, ci_participante, asistencia)

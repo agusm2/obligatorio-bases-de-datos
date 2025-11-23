@@ -93,3 +93,6 @@ def list_all_sanciones():
 def get_sanciones(ci):
     """Devuelve las sanciones de un participante."""
     return Participant.get_sanciones(ci)
+
+def delete_sancion(ci, fecha_inicio, fecha_fin):
+    return Participant.delete_sancion(ci, fecha_inicio, fecha_fin)

@@ -96,6 +96,62 @@ export default function ABMReservas() {
     return true;
   }
 
+  async function modificarAsistencia(
+    id_reserva,
+    ci_participante,
+    asistenciaActual
+  ) {
+    try {
+      const nuevaAsistencia = !asistenciaActual;
+
+      const res = await fetch(
+        `http://localhost:5000/reservation/${id_reserva}/participants/${ci_participante}/asistencia`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ asistencia: nuevaAsistencia }),
+        }
+      );
+
+      if (!res.ok) {
+        throw new Error("Error al modificar asistencia");
+      }
+      await getReservas();
+
+      setReservaSeleccionada((prev) => ({
+        ...prev,
+        participants: prev.participants.map((p) =>
+          p.ci_participante === ci_participante
+            ? { ...p, asistencia: nuevaAsistencia }
+            : p
+        ),
+      }));
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  async function sancionarParticipante(ci_participante) {
+    try {
+      const res = await fetch(
+        `http://localhost:5000/participant/${ci_participante}/sancion`,
+        { method: "POST" }
+      );
+
+      if (!res.ok) {
+        throw new Error("Error al sancionar participante");
+      }
+
+      alert(
+        `Participante con cédula ${ci_participante} sancionado correctamente`
+      );
+
+      await getReservas();
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
   useEffect(() => {
     getReservas();
   }, []);
@@ -245,10 +301,23 @@ export default function ABMReservas() {
                   <strong>Asistencia.</strong> {p.asistencia ? "✅" : "❌"}
                 </div>
                 <div>
-                  <button style={{ borderRadius: 5 }} disabled={p.asistencia}>
+                  <button
+                    style={{ borderRadius: 5 }}
+                    disabled={p.asistencia}
+                    onClick={() => sancionarParticipante(p.ci_participante)}
+                  >
                     Sancionar
                   </button>
-                  <button style={{ borderRadius: 5, marginLeft: 5 }}>
+                  <button
+                    style={{ borderRadius: 5, marginLeft: 5 }}
+                    onClick={() =>
+                      modificarAsistencia(
+                        reservaSeleccionada.id_reserva,
+                        p.ci_participante,
+                        p.asistencia
+                      )
+                    }
+                  >
                     Modificar asistencia
                   </button>
                 </div>
@@ -262,7 +331,3 @@ export default function ABMReservas() {
     </>
   );
 }
-
-//estado
-//asistencia
-//fecha??

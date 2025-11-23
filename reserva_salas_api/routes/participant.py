@@ -94,3 +94,23 @@ def get_sanciones_ci(ci):
         return jsonify(sanciones), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 400
+
+
+@participant_bp.route("/<string:ci>/sancion", methods=["DELETE"])
+def delete_sancion(ci):
+    data = request.get_json()
+    fecha_inicio = data.get("fecha_inicio")
+    fecha_fin = data.get("fecha_fin")
+
+    if not fecha_inicio or not fecha_fin:
+        return jsonify({"error": "fecha_inicio y fecha_fin son obligatorios"}), 400
+
+    try:
+        res = participant_service.delete_sancion({"ci": ci}, fecha_inicio, fecha_fin)
+        if res is None:
+            return jsonify({"error": "Sanción no encontrada"}), 404
+        return jsonify({"message": "Sanción eliminada"}), 200
+    except ValueError as ve:
+        return jsonify({"error": str(ve)}), 400
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400

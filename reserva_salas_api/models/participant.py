@@ -376,6 +376,73 @@ class Participant:
             cur.close()
             conn.close()
 
+    @classmethod
+    def delete_sancion(cls, ci, fecha_inicio, fecha_fin):
+        from datetime import datetime
+
+        if isinstance(ci, dict):
+            ci = ci.get("ci")
+
+        if not ci:
+            raise ValueError("ci es obligatorio")
+
+        # Parsear fecha_inicio con formatos flexibles
+        parsed_inicio = None
+        for fmt in ("%Y-%m-%d %H:%M:%S", "%Y-%m-%d", "%d-%m-%Y"):
+            try:
+                parsed_inicio = datetime.strptime(fecha_inicio, fmt)
+                break
+            except Exception:
+                continue
+
+        if not parsed_inicio:
+            raise ValueError(
+                "fecha_inicio inválida, formatos permitidos: 'YYYY-MM-DD' o 'YYYY-MM-DD HH:MM:SS'"
+            )
+
+        # Si vino solo fecha, le metemos 00:00:00
+        if len(fecha_inicio) == 10:
+            parsed_inicio = datetime(
+                parsed_inicio.year, parsed_inicio.month, parsed_inicio.day, 0, 0, 0
+            )
+
+        parsed_fin = None
+        for fmt in ("%Y-%m-%d", "%d-%m-%Y"):
+            try:
+                parsed_fin = datetime.strptime(fecha_fin, fmt).date()
+                break
+            except Exception:
+                continue
+
+        if not parsed_fin:
+            raise ValueError(
+                "fecha_fin inválida, formatos permitidos: 'YYYY-MM-DD' o 'DD-MM-YYYY'"
+            )
+
+        conn = get_db_connection()
+        cur = conn.cursor()
+        try:
+            cur.execute(
+                """
+                DELETE FROM Sancion_participante
+                WHERE ci_participante = %s
+                AND fecha_inicio = %s
+                AND fecha_fin = %s
+                """,
+                (
+                    ci,
+                    parsed_inicio.strftime("%Y-%m-%d %H:%M:%S"),
+                    parsed_fin.strftime("%Y-%m-%d"),
+                ),
+            )
+            if cur.rowcount == 0:
+                return None
+            conn.commit()
+            return True
+        finally:
+            cur.close()
+            conn.close()
+
     def __eq__(self, other):
         if not isinstance(other, Participant):
             return NotImplemented
