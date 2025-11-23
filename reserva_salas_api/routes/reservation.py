@@ -121,3 +121,12 @@ def update_asistencia(id_reserva, ci):
         return jsonify({"message": "Asistencia actualizada"}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 400
+
+
+@reservations_bp.route("participant/<string:ci>", methods=["GET"])
+def get_reservas_by_participant(ci):
+    try:
+        data = reservation_service.get_by_participant(ci)
+        return jsonify(data), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
