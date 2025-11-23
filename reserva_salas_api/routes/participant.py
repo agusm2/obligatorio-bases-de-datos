@@ -73,44 +73,42 @@ def add_sancion(ci):
     except mysql.connector.IntegrityError as ie:
         return jsonify({"error": str(ie)}), 409
     except Exception as e:
-        return jsonify({"error": str(e)}), 400
+        return jsonify({'error': str(e)}), 400
 
 
-@participant_bp.route("/sanciones", methods=["GET"])
-def get_all_sanciones():
-    """Devuelve todas las sanciones de todos los participantes."""
+@participant_bp.route('/sanciones', methods=['GET'])
+def get_sanciones():
+    """Devuelve todas las sanciones. Soporta query params `limit` y `offset`."""
     try:
-        sanciones = participant_service.list_all_sanciones()
-        return jsonify(sanciones), 200
+        # leer paginación opcional
+        limit = request.args.get('limit', None)
+        offset = request.args.get('offset', None)
+        try:
+            limit = int(limit) if limit is not None else 100
+        except Exception:
+            return jsonify({'error': 'limit debe ser un entero'}), 400
+        try:
+            offset = int(offset) if offset is not None else 0
+        except Exception:
+            return jsonify({'error': 'offset debe ser un entero'}), 400
+
+        items = participant_service.get_sanciones(limit=limit, offset=offset)
+        return jsonify(items), 200
     except Exception as e:
-        return jsonify({"error": str(e)}), 400
+        return jsonify({'error': str(e)}), 400
 
 
-@participant_bp.route("/<string:ci>/sancion", methods=["GET"])
-def get_sanciones_ci(ci):
-    """Devuelve todas las sanciones del participante indicado."""
+@participant_bp.route('/<string:ci>/sanciones', methods=['DELETE'])
+def delete_sanciones(ci):
+    """Elimina todas las sanciones de un participante identificado por CI."""
     try:
-        sanciones = participant_service.get_sanciones({"ci": ci})
-        return jsonify(sanciones), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 400
-
-
-@participant_bp.route("/<string:ci>/sancion", methods=["DELETE"])
-def delete_sancion(ci):
-    data = request.get_json()
-    fecha_inicio = data.get("fecha_inicio")
-    fecha_fin = data.get("fecha_fin")
-
-    if not fecha_inicio or not fecha_fin:
-        return jsonify({"error": "fecha_inicio y fecha_fin son obligatorios"}), 400
-
-    try:
-        res = participant_service.delete_sancion({"ci": ci}, fecha_inicio, fecha_fin)
+        res = participant_service.delete_sanciones({'ci': ci})
         if res is None:
-            return jsonify({"error": "Sanción no encontrada"}), 404
-        return jsonify({"message": "Sanción eliminada"}), 200
+            return jsonify({'error': 'Participante no encontrado'}), 404
+        return jsonify({'deleted': res}), 200
     except ValueError as ve:
-        return jsonify({"error": str(ve)}), 400
+        return jsonify({'error': str(ve)}), 400
+    except mysql.connector.IntegrityError as ie:
+        return jsonify({'error': str(ie)}), 409
     except Exception as e:
-        return jsonify({"error": str(e)}), 400
+        return jsonify({'error': str(e)}), 400

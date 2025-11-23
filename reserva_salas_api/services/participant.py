@@ -85,14 +85,14 @@ def add_sancion(ci, fecha_fin, fecha_inicio=None):
     return Participant.add_sancion(ci, fecha_fin, fecha_inicio)
 
 
-def list_all_sanciones():
-    """Devuelve todas las sanciones de todos los participantes."""
-    return Participant.list_all_sanciones()
+def get_sanciones(limit=100, offset=0):
+    """Devuelve la lista de sanciones (delegando al modelo)."""
+    return Participant.list_sanciones(limit=limit, offset=offset)
 
 
-def get_sanciones(ci):
-    """Devuelve las sanciones de un participante."""
-    return Participant.get_sanciones(ci)
+def delete_sanciones(ci):
+    """Eliminar todas las sanciones de un participante.
 
-def delete_sancion(ci, fecha_inicio, fecha_fin):
-    return Participant.delete_sancion(ci, fecha_inicio, fecha_fin)
+    Devuelve el número de sanciones eliminadas, o None si participante no existe.
+    """
+    return Participant.delete_sanciones(ci)

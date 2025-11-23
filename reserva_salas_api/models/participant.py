@@ -309,136 +309,77 @@ class Participant:
         }
 
     @classmethod
-    def list_all_sanciones(cls):
-        """Devuelve todas las sanciones de todos los participantes."""
+    def list_sanciones(cls, limit=100, offset=0):
+        """Devuelve la lista de sanciones con información básica del participante.
+
+        Cada elemento es un dict: {ci, nombre, apellido, fecha_inicio, fecha_fin}
+        """
         conn = get_db_connection()
         cur = conn.cursor(dictionary=True)
         try:
             cur.execute(
-                """
-                SELECT
-                        sp.ci_participante,
-                        sp.fecha_inicio,
-                        sp.fecha_fin,
-                        p.nombre,
-                        p.apellido,
-                        p.email
-                FROM Sancion_participante sp
-                        JOIN Participante p ON p.ci = sp.ci_participante
-                        ORDER BY sp.fecha_inicio DESC
-                        """
+                "SELECT sp.ci_participante AS ci, p.nombre AS nombre, p.apellido AS apellido, "
+                "sp.fecha_inicio AS fecha_inicio, sp.fecha_fin AS fecha_fin "
+                "FROM Sancion_participante sp "
+                "JOIN Participante p ON sp.ci_participante = p.ci "
+                "ORDER BY sp.fecha_inicio DESC LIMIT %s OFFSET %s",
+                (limit, offset)
             )
             rows = cur.fetchall()
-
-            for r in rows:
-                if r["fecha_inicio"]:
-                    r["fecha_inicio"] = r["fecha_inicio"].strftime("%d-%m-%Y")
-                if r["fecha_fin"]:
-                    r["fecha_fin"] = r["fecha_fin"].strftime("%d-%m-%Y")
-
-            return rows
         finally:
             cur.close()
             conn.close()
 
-    @classmethod
-    def get_sanciones(cls, ci):
-        """Devuelve todas las sanciones de un participante concreto."""
-        if isinstance(ci, dict):
-            ci = ci.get("ci")
-
-        conn = get_db_connection()
-        cur = conn.cursor(dictionary=True)
-        try:
-            cur.execute(
-                """
-                SELECT 
-                    ci_participante,
-                    fecha_inicio,
-                    fecha_fin
-                FROM Sancion_participante
-                WHERE ci_participante = %s
-                ORDER BY fecha_inicio DESC
-            """,
-                (ci,),
-            )
-            rows = cur.fetchall()
-
-            for r in rows:
-                if r["fecha_inicio"]:
-                    r["fecha_inicio"] = r["fecha_inicio"].strftime("%d-%m-%Y")
-                if r["fecha_fin"]:
-                    r["fecha_fin"] = r["fecha_fin"].strftime("%d-%m-%Y")
-
-            return rows
-
-        finally:
-            cur.close()
-            conn.close()
+        result = []
+        for r in rows:
+            fi = r.get('fecha_inicio')
+            ff = r.get('fecha_fin')
+            # Normalizar a string
+            if fi is not None and hasattr(fi, 'strftime'):
+                try:
+                    fi = fi.strftime('%Y-%m-%d %H:%M:%S')
+                except Exception:
+                    fi = str(fi)
+            if ff is not None and hasattr(ff, 'strftime'):
+                try:
+                    ff = ff.strftime('%Y-%m-%d')
+                except Exception:
+                    ff = str(ff)
+            result.append({
+                'ci': r.get('ci'),
+                'nombre': r.get('nombre'),
+                'apellido': r.get('apellido'),
+                'fecha_inicio': fi,
+                'fecha_fin': ff
+            })
+        return result
 
     @classmethod
-    def delete_sancion(cls, ci, fecha_inicio, fecha_fin):
-        from datetime import datetime
+    def delete_sanciones(cls, ci):
+        """Elimina todas las sanciones de un participante.
 
+        Devuelve el número de filas eliminadas, o None si el participante no existe.
+        """
         if isinstance(ci, dict):
-            ci = ci.get("ci")
+            ci = ci.get('ci')
 
         if not ci:
-            raise ValueError("ci es obligatorio")
+            raise ValueError('ci es obligatorio')
 
-        # Parsear fecha_inicio con formatos flexibles
-        parsed_inicio = None
-        for fmt in ("%Y-%m-%d %H:%M:%S", "%Y-%m-%d", "%d-%m-%Y"):
-            try:
-                parsed_inicio = datetime.strptime(fecha_inicio, fmt)
-                break
-            except Exception:
-                continue
-
-        if not parsed_inicio:
-            raise ValueError(
-                "fecha_inicio inválida, formatos permitidos: 'YYYY-MM-DD' o 'YYYY-MM-DD HH:MM:SS'"
-            )
-
-        # Si vino solo fecha, le metemos 00:00:00
-        if len(fecha_inicio) == 10:
-            parsed_inicio = datetime(
-                parsed_inicio.year, parsed_inicio.month, parsed_inicio.day, 0, 0, 0
-            )
-
-        parsed_fin = None
-        for fmt in ("%Y-%m-%d", "%d-%m-%Y"):
-            try:
-                parsed_fin = datetime.strptime(fecha_fin, fmt).date()
-                break
-            except Exception:
-                continue
-
-        if not parsed_fin:
-            raise ValueError(
-                "fecha_fin inválida, formatos permitidos: 'YYYY-MM-DD' o 'DD-MM-YYYY'"
-            )
+        # validar que el participante existe
+        participante = cls.get_by_pk(ci)
+        if not participante:
+            return None
 
         conn = get_db_connection()
         cur = conn.cursor()
         try:
             cur.execute(
-                """
-                DELETE FROM Sancion_participante
-                WHERE ci_participante = %s
-                AND fecha_inicio = %s
-                AND fecha_fin = %s
-                """,
-                (
-                    ci,
-                    parsed_inicio.strftime("%Y-%m-%d %H:%M:%S"),
-                    parsed_fin.strftime("%Y-%m-%d"),
-                ),
+                "DELETE FROM Sancion_participante WHERE ci_participante = %s",
+                (ci,)
             )
-            if cur.rowcount == 0:
-                return None
+            deleted = cur.rowcount if hasattr(cur, 'rowcount') else None
             conn.commit()
-            return True
         finally:
             cur.close()
             conn.close()
@@ -458,6 +399,13 @@ class Participant:
             cur.close()
             conn.close()
         return cls.from_row(row)
+        # rowcount puede ser -1 en algunos drivers; normalizamos a int cuando es posible
+        try:
+            deleted = int(deleted) if deleted is not None else 0
+        except Exception:
+            deleted = 0
+
+        return deleted
 
     def __eq__(self, other):
         if not isinstance(other, Participant):
