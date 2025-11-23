@@ -16,10 +16,17 @@ export default function Reportes() {
   const [participantsMultipleSanctions, setParticipantsMultipleSanctions] =
     useState([]);
   const [usersMostNoShow, setUsersMostNoShow] = useState([]);
+  const [mostDemandedTurns, setMostDemandedTurns] = useState([]);
 
   function capitalize(str) {
     if (!str) return "";
     return str.charAt(0).toUpperCase() + str.slice(1);
+  }
+
+  function formatHour(timeStr) {
+    const [h, m] = timeStr.split(":");
+    const hh = h.padStart(2, "0");
+    return `${hh}:${m}`;
   }
 
   async function getMostReserved() {
@@ -29,8 +36,6 @@ export default function Reportes() {
     const data = await res.json();
     setMostReserved(data[0] || null);
   }
-
-  async function getMostDemanded() {}
 
   async function avgParticipants() {
     const res = await fetch(
@@ -102,6 +107,14 @@ export default function Reportes() {
     setUsersMostNoShow(data);
   }
 
+  async function getMostDemandedTurns() {
+    const res = await fetch(
+      "http://localhost:5000/dashboard/most_demanded_turns"
+    );
+    const data = await res.json();
+    setMostDemandedTurns(data); // es un array
+  }
+
   useEffect(() => {
     getMostReserved();
     avgParticipants();
@@ -113,6 +126,7 @@ export default function Reportes() {
     getReservationsByProgram();
     getParticipantsWithMultipleSanctions();
     getUsersMostNoShowOrCancel();
+    getMostDemandedTurns();
   }, []);
 
   return (
@@ -124,7 +138,18 @@ export default function Reportes() {
         con {mostReserved && mostReserved.cantidad_reservas} reservas.
       </p>
       <h5>Turnos más demandados</h5>
-      <p>* Info</p>
+
+      {mostDemandedTurns.length > 0 ? (
+        mostDemandedTurns.map((t, i) => (
+          <p key={i}>
+            * {formatHour(t.hora_inicio)} - {formatHour(t.hora_fin)}: (
+            {t.cantidad_reservas} reservas)
+          </p>
+        ))
+      ) : (
+        <p>* Sin datos</p>
+      )}
+
       <h5>Pormedio de participantes por sala</h5>
       <p>
         * Promedio de participantes por sala:{" "}
