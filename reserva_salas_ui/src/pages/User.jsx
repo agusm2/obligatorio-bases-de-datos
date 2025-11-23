@@ -16,9 +16,12 @@ export default function User() {
   const [fecha, setFecha] = useState("");
   const [turnoId, setTurnoId] = useState("");
   const [turnos, setTurnos] = useState([]);
+  const [ciUsuario, setCiUsuario] = useState("");
 
   const [showReservas, setShowReservas] = useState(false);
   const [showParticipantes, setShowParticipantes] = useState(false);
+
+  const [participantesExtra, setParticipantesExtra] = useState([]);
 
   const handleCloseReservas = () => setShowReservas(false);
   const handleShowReservas = () => setShowReservas(true);
@@ -38,15 +41,60 @@ export default function User() {
   const minDate = formatDate(today);
   const maxDate = formatDate(max);
 
+  const reservar = async () => {
+    const participantesFinales = [ciUsuario, ...participantesExtra];
+
+    const payload = {
+      classroom_name: sala.nombre_sala,
+      building: sala.edificio,
+      date: fecha,
+      id_turn: Number(turnoId),
+      participants: participantesFinales,
+    };
+
+    try {
+      console.log("PAYLOAD ENVIADO:", payload);
+
+      const res = await fetch("http://localhost:5000/reservation/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        alert("Error al crear la reserva");
+        return;
+      }
+
+      alert("Reserva creada correctamente");
+
+      setParticipantesExtra([]);
+      setSala(null);
+      setFecha("");
+      setTurnoId("");
+      setCapacidad(1);
+      setCiUsuario("");
+      setShowParticipantes(false);
+    } catch (err) {
+      console.error(err);
+      alert("Error inesperado");
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (capacidad > 1) {
+    if (!sala || !fecha || !turnoId || !ciUsuario) {
+      alert("Se deben completar todos los campos");
+      return;
+    }
+
+    if (capacidad > 1 && participantesExtra.length !== capacidad - 1) {
       setShowParticipantes(true);
       return;
     }
 
-    //Acá valido datos y hago el POST si esta todo OK
+    await reservar();
   };
 
   function handleLogout() {
@@ -123,6 +171,16 @@ export default function User() {
           }}
         >
           <fieldset disabled={user?.sancionado}>
+            <Form.Group controlId="Ci" className="mb-3">
+              <Form.Label>C.I.</Form.Label>
+              <Form.Control
+                type="text"
+                placeholder="Ingrese su cédula..."
+                value={ciUsuario}
+                onChange={(e) => setCiUsuario(e.target.value)}
+              />
+            </Form.Group>
+
             <Form.Group controlId="Sala" className="mb-3">
               <Form.Label>Sala</Form.Label>
               <Form.Select
@@ -241,11 +299,36 @@ export default function User() {
 
               <Form.Group className="mb-2">
                 <Form.Label>CI</Form.Label>
-                <Form.Control type="text" placeholder="Cédula..." />
+                <Form.Control
+                  type="text"
+                  placeholder="Cédula..."
+                  onChange={(e) => {
+                    const copia = [...participantesExtra];
+                    copia[i] = e.target.value;
+                    setParticipantesExtra(copia);
+                  }}
+                />
               </Form.Group>
             </Form>
           ))}
         </Modal.Body>
+        <Modal.Footer>
+          <Button
+            variant="primary"
+            onClick={async () => {
+              if (
+                participantesExtra.length !== capacidad - 1 ||
+                participantesExtra.some((ci) => !ci || ci.trim() === "")
+              ) {
+                alert("Complete todas las cédulas de los participantes");
+                return;
+              }
+              await reservar();
+            }}
+          >
+            Reservar
+          </Button>
+        </Modal.Footer>
       </Modal>
     </>
   );
