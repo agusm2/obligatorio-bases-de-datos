@@ -81,3 +81,8 @@ def add_sancion(ci, fecha_fin, fecha_inicio=None):
     Puede lanzar ValueError en caso de datos inválidos y mysql.connector.IntegrityError si la BD rechaza la inserción.
     """
     return Participant.add_sancion(ci, fecha_fin, fecha_inicio)
+
+
+def get_sanciones(limit=100, offset=0):
+    """Devuelve la lista de sanciones (delegando al modelo)."""
+    return Participant.list_sanciones(limit=limit, offset=offset)

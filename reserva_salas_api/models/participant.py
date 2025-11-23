@@ -290,6 +290,52 @@ class Participant:
             'fecha_fin': fecha_fin_date.strftime('%Y-%m-%d')
         }
 
+    @classmethod
+    def list_sanciones(cls, limit=100, offset=0):
+        """Devuelve la lista de sanciones con información básica del participante.
+
+        Cada elemento es un dict: {ci, nombre, apellido, fecha_inicio, fecha_fin}
+        """
+        conn = get_db_connection()
+        cur = conn.cursor(dictionary=True)
+        try:
+            cur.execute(
+                "SELECT sp.ci_participante AS ci, p.nombre AS nombre, p.apellido AS apellido, "
+                "sp.fecha_inicio AS fecha_inicio, sp.fecha_fin AS fecha_fin "
+                "FROM Sancion_participante sp "
+                "JOIN Participante p ON sp.ci_participante = p.ci "
+                "ORDER BY sp.fecha_inicio DESC LIMIT %s OFFSET %s",
+                (limit, offset)
+            )
+            rows = cur.fetchall()
+        finally:
+            cur.close()
+            conn.close()
+
+        result = []
+        for r in rows:
+            fi = r.get('fecha_inicio')
+            ff = r.get('fecha_fin')
+            # Normalizar a string
+            if fi is not None and hasattr(fi, 'strftime'):
+                try:
+                    fi = fi.strftime('%Y-%m-%d %H:%M:%S')
+                except Exception:
+                    fi = str(fi)
+            if ff is not None and hasattr(ff, 'strftime'):
+                try:
+                    ff = ff.strftime('%Y-%m-%d')
+                except Exception:
+                    ff = str(ff)
+            result.append({
+                'ci': r.get('ci'),
+                'nombre': r.get('nombre'),
+                'apellido': r.get('apellido'),
+                'fecha_inicio': fi,
+                'fecha_fin': ff
+            })
+        return result
+
     def __eq__(self, other):
         if not isinstance(other, Participant):
             return NotImplemented

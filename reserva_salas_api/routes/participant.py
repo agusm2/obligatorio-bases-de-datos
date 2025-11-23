@@ -80,3 +80,25 @@ def add_sancion(ci):
         return jsonify({'error': str(ie)}), 409
     except Exception as e:
         return jsonify({'error': str(e)}), 400
+
+
+@participant_bp.route('/sanciones', methods=['GET'])
+def get_sanciones():
+    """Devuelve todas las sanciones. Soporta query params `limit` y `offset`."""
+    try:
+        # leer paginación opcional
+        limit = request.args.get('limit', None)
+        offset = request.args.get('offset', None)
+        try:
+            limit = int(limit) if limit is not None else 100
+        except Exception:
+            return jsonify({'error': 'limit debe ser un entero'}), 400
+        try:
+            offset = int(offset) if offset is not None else 0
+        except Exception:
+            return jsonify({'error': 'offset debe ser un entero'}), 400
+
+        items = participant_service.get_sanciones(limit=limit, offset=offset)
+        return jsonify(items), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
