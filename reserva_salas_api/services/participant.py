@@ -8,10 +8,10 @@ def get_all(limit=100, offset=0):
     for c in items:
         # Compatibilidad: si el modelo devuelve directamente Participant instances
         # (antes), o si devolvemos {'participant': Participant, 'programas': [...]}
-        if isinstance(c, dict) and 'participant' in c:
-            participant_obj = c['participant']
-            programas = c.get('programas', [])
-            result.append({**participant_obj.to_dict(), 'programas': programas})
+        if isinstance(c, dict) and "participant" in c:
+            participant_obj = c["participant"]
+            programas = c.get("programas", [])
+            result.append({**participant_obj.to_dict(), "programas": programas})
         else:
             # asumimos que c es una Participant
             result.append(c.to_dict())
@@ -24,23 +24,25 @@ def create(data):
     Acepta claves en inglés ('ci', 'name', 'surname', 'email') por consistencia con el servicio de classroom.
     Devuelve None si ya existe (la ruta transformará eso en 409).
     """
-    ci = data.get('ci')
-    name = data.get('name')
-    surname = data.get('surname')
-    email = data.get('email')
-    password = data.get('password')
+    ci = data.get("ci")
+    name = data.get("name")
+    surname = data.get("surname")
+    email = data.get("email")
+    password = data.get("password")
 
     # Si ya existe, devolvemos None para que la capa de rutas maneje el 409
     obj = Participant.get_by_pk(ci)
     if obj:
         return None
 
-    programas = data.get('programas')  # opcional
-    obj = Participant.create(ci, name, surname, email, programas=programas, password=password)
+    programas = data.get("programas")  # opcional
+    obj = Participant.create(
+        ci, name, surname, email, programas=programas, password=password
+    )
 
     # devolver representación incluyendo programas (si existen)
     result = obj.to_dict()
-    result['programas'] = Participant.get_programs(ci)
+    result["programas"] = Participant.get_programs(ci)
     return result
 
 
@@ -50,18 +52,18 @@ def update(ci, data):
     ci puede ser un string o un dict con esa clave.
     """
     if isinstance(ci, dict):
-        ci = ci.get('ci')
+        ci = ci.get("ci")
 
     obj = Participant.get_by_pk(ci)
     if not obj:
         return None
-    obj.update(email=data.get('email'))
+    obj.update(email=data.get("email"))
     return obj.to_dict()
 
 
 def delete(ci):
     if isinstance(ci, dict):
-        ci = ci.get('ci')
+        ci = ci.get("ci")
     else:
         ci = ci
     if not ci:
@@ -71,7 +73,7 @@ def delete(ci):
     if not obj:
         return None
     obj.delete()
-    return {'message': 'Eliminada'}
+    return {"message": "Eliminada"}
 
 
 def add_sancion(ci, fecha_fin, fecha_inicio=None):
@@ -86,3 +88,11 @@ def add_sancion(ci, fecha_fin, fecha_inicio=None):
 def get_sanciones(limit=100, offset=0):
     """Devuelve la lista de sanciones (delegando al modelo)."""
     return Participant.list_sanciones(limit=limit, offset=offset)
+
+
+def delete_sanciones(ci):
+    """Eliminar todas las sanciones de un participante.
+
+    Devuelve el número de sanciones eliminadas, o None si participante no existe.
+    """
+    return Participant.delete_sanciones(ci)

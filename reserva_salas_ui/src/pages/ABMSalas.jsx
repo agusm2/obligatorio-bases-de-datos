@@ -66,7 +66,6 @@ export default function ABMSalas() {
   async function getSalas() {
     const res = await fetch("http://localhost:5000/classroom/");
     const data = await res.json();
-    console.log(data);
     setSalas(data);
   }
 
@@ -144,7 +143,7 @@ export default function ABMSalas() {
 
   return (
     <>
-      <h2>Salas</h2>
+      <h2 style={{ textAlign: "center", marginTop: 30 }}>Salas</h2>
       <div style={{ width: "50%", margin: "0 auto", padding: 0 }}>
         <Table
           striped
@@ -230,7 +229,7 @@ export default function ABMSalas() {
         <Modal.Body>
           <Form>
             <Form.Group>
-              <Form.Label>Ingrese nueva capacidad</Form.Label>
+              <Form.Label>Actualizar nueva capacidad</Form.Label>
               <Form.Control
                 type="number"
                 name="capacity"
@@ -239,13 +238,16 @@ export default function ABMSalas() {
               />
             </Form.Group>
             <Form.Group>
-              <Form.Label>Ingrese nuevo tipo de sala</Form.Label>
-              <Form.Control
-                type="text"
+              <Form.Label>Actualizar tipo de sala</Form.Label>
+              <Form.Select
                 name="room_type"
                 value={editData.room_type}
                 onChange={handleEditChange}
-              />
+              >
+                <option value="libre">Libre</option>
+                <option value="posgrado">Posgrado</option>
+                <option value="docente">Docente</option>
+              </Form.Select>
             </Form.Group>
           </Form>
         </Modal.Body>
@@ -273,13 +275,17 @@ export default function ABMSalas() {
             </Form.Group>
 
             <Form.Group className="mb-3">
-              <Form.Label>Edificio</Form.Label>
-              <Form.Control
-                type="text"
+              <Form.Label>Edificio (departamento)</Form.Label>
+              <Form.Select
                 name="building"
                 value={formData.building}
                 onChange={handleChange}
-              />
+              >
+                <option value="">Seleccione un edificio...</option>
+                <option value="Central">Central (Montevideo)</option>
+                <option value="Campo">Campo (Salto)</option>
+                <option value="UTP">UTP (Rocha)</option>
+              </Form.Select>
             </Form.Group>
 
             <Form.Group className="mb-3">
@@ -294,12 +300,16 @@ export default function ABMSalas() {
 
             <Form.Group>
               <Form.Label>Tipo</Form.Label>
-              <Form.Control
-                type="text"
+              <Form.Select
                 name="room_type"
                 value={formData.room_type}
                 onChange={handleChange}
-              />
+              >
+                <option value="">Seleccione tipo de sala...</option>
+                <option value="libre">Libre</option>
+                <option value="posgrado">Posgrado</option>
+                <option value="docente">Docente</option>
+              </Form.Select>
             </Form.Group>
           </Form>
         </Modal.Body>

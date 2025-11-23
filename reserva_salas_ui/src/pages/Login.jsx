@@ -1,12 +1,45 @@
+import { useState } from "react";
 import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 
 export default function Login() {
+  const [user, setUser] = useState("");
+  const [passwd, setPasswd] = useState("");
+  const { login } = useAuth();
+  const navigate = useNavigate();
+
   const handleLogin = async (e) => {
     e.preventDefault();
 
-    const user = e.target.user.value;
-    const passwd = e.target.password.value;
+    if (user.trim() === "" || passwd.trim() === "") {
+      alert("Se deben llenar todos los campos");
+      return;
+    }
+
+    const res = await fetch(`http://localhost:5000/user/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        user,
+        passwd,
+      }),
+    });
+
+    if (!res.ok) {
+      alert("Usuario o contraseña incorrecto/s");
+      return;
+    }
+
+    const data = await res.json();
+
+    login(data.user);
+    if (data.user.role === "admin") {
+      navigate("/admin");
+    } else {
+      navigate("/user");
+    }
   };
 
   return (
@@ -37,6 +70,8 @@ export default function Login() {
             <Form.Control
               type="text"
               name="user"
+              onChange={(e) => setUser(e.target.value)}
+              value={user}
               placeholder="Ingrese su usuario..."
             />
           </Form.Group>
@@ -45,6 +80,8 @@ export default function Login() {
             <Form.Control
               type="password"
               name="password"
+              value={passwd}
+              onChange={(e) => setPasswd(e.target.value)}
               placeholder="Ingrese su contraseña..."
             />
           </Form.Group>

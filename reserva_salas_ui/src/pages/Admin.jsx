@@ -5,13 +5,15 @@ import userImg from "../assets/user-solid-full.svg";
 import buildingImg from "../assets/building-solid-full.svg";
 import banImg from "../assets/ban-solid-full.svg";
 import calendarImg from "../assets/calendar-check-solid-full.svg";
+import { useAuth } from "../contexts/AuthContext";
 
 export default function Admin() {
+  const { logout, user } = useAuth();
   const navigate = useNavigate();
 
   function handleLogout() {
+    logout();
     navigate("/");
-    //Función para cerrar sesión (ver de hacer una global y reutilizarla)
   }
 
   return (
@@ -23,7 +25,7 @@ export default function Admin() {
         marginTop: 50,
       }}
     >
-      <h2 style={{ marginBottom: 40 }}>Bienvenido ADMIN</h2>
+      <h2 style={{ marginBottom: 40 }}>Bienvenido {user?.correo}</h2>
       <div
         style={{
           display: "grid",
@@ -64,13 +66,22 @@ export default function Admin() {
           <p>Sanciones</p>
         </button>
       </div>
-      <Button
-        variant="outline-danger"
-        onClick={() => handleLogout()}
-        style={{ marginTop: 30 }}
-      >
-        Cerrar Sesión
-      </Button>
+      <div>
+        <Button
+          variant="outline-danger"
+          onClick={() => handleLogout()}
+          style={{ marginTop: 30, marginRight: 20 }}
+        >
+          Cerrar Sesión
+        </Button>
+        <Button
+          variant="outline-primary"
+          onClick={() => navigate("/admin/reportes")}
+          style={{ marginTop: 30 }}
+        >
+          Reportes
+        </Button>
+      </div>
     </div>
   );
 }
