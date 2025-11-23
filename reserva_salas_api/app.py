@@ -5,6 +5,7 @@ from routes.classroom import classroom_bp
 from routes.participant import participant_bp
 from routes.reservation import reservations_bp
 from routes.user import user_bp
+from routes.dashboard import dashboard_bp
 
 app = Flask(__name__)
 
@@ -15,6 +16,7 @@ app.register_blueprint(classroom_bp)
 app.register_blueprint(participant_bp)
 app.register_blueprint(reservations_bp)
 app.register_blueprint(user_bp)
+app.register_blueprint(dashboard_bp)
 
 @app.route('/')
 def home():
