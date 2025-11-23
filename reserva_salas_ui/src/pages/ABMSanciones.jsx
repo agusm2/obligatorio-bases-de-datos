@@ -2,7 +2,6 @@ import { useNavigate } from "react-router-dom";
 import Table from "react-bootstrap/Table";
 import Button from "react-bootstrap/Button";
 
-import pencilImg from "../assets/pencil-solid-full.svg";
 import trashImg from "../assets/trash-solid-full.svg";
 import { useEffect, useState } from "react";
 
@@ -52,7 +51,7 @@ export default function ABMSanciones() {
               <th>Apellido</th>
               <th>Fecha inicio</th>
               <th>Fecha fin</th>
-              <th style={{ textAlign: "center" }}>Editar/Eliminar</th>
+              <th style={{ textAlign: "center" }}>Eliminar</th>
             </tr>
           </thead>
           <tbody>
@@ -71,15 +70,7 @@ export default function ABMSanciones() {
                     gap: "10px",
                   }}
                 >
-                  <button style={{ borderRadius: 5 }}>
-                    <img
-                      src={pencilImg}
-                      style={{
-                        width: "50px",
-                        height: "20px",
-                      }}
-                    />
-                  </button>
+                  
                   <button
                     style={{ borderRadius: 5 }}
                     onClick={() =>

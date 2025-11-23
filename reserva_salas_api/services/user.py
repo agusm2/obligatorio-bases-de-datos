@@ -1,21 +1,32 @@
 from models.user import User
+from models.participant import Participant
 
 
 def authenticate(data):
-	"""Authenticate user credentials.
+    """Authenticate user credentials.
 
-	Returns user dict on success or None on failure.
-	"""
-	correo = data.get('user')
-	password =  data.get('passwd')
-	if not correo or password is None:
-		return None
+    Returns user dict on success or None on failure.
+    """
+    correo = data.get("user")
+    password = data.get("passwd")
+    if not correo or password is None:
+        return None
 
-	user = User.get_by_pk(correo)
-	if not user:
-		return None
-	if user.password != str(password):
-		return None
+    user = User.get_by_pk(correo)
+    if not user:
+        return None
+    if user.password != str(password):
+        return None
 
-	# Return dictionary including role and sancionado flag
-	return user.to_dict()
+    user_dict = user.to_dict()
+
+    participante = Participant.get_by_email(correo)
+    if participante:
+        programas = Participant.get_programs(participante.ci)
+        user_dict["programas"] = programas
+        user_dict["ci"] = participante.ci
+    else:
+        user_dict["programas"] = []
+
+    # Return dictionary including role and sancionado flag
+    return user_dict

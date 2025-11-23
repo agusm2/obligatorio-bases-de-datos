@@ -443,6 +443,22 @@ class Participant:
             cur.close()
             conn.close()
 
+    @classmethod
+    def get_by_email(cls, email):
+        """Devuelve un Participant a partir del email (o None si no existe)."""
+        conn = get_db_connection()
+        cur = conn.cursor(dictionary=True)
+        try:
+            cur.execute(
+                "SELECT ci, nombre, apellido, email FROM Participante WHERE email=%s",
+                (email,),
+            )
+            row = cur.fetchone()
+        finally:
+            cur.close()
+            conn.close()
+        return cls.from_row(row)
+
     def __eq__(self, other):
         if not isinstance(other, Participant):
             return NotImplemented

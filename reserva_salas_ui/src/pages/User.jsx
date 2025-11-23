@@ -21,13 +21,13 @@ export default function User() {
   const [showReservas, setShowReservas] = useState(false);
   const [showParticipantes, setShowParticipantes] = useState(false);
 
+  const [reservas, setReservas] = useState([]);
+
   const [participantesExtra, setParticipantesExtra] = useState([]);
 
   const handleCloseReservas = () => setShowReservas(false);
-  const handleShowReservas = () => setShowReservas(true);
 
   const handleCloseParticipantes = () => setShowParticipantes(false);
-  const handleShowParticipantes = () => setShowParticipantes(true);
 
   const { logout, user } = useAuth();
 
@@ -53,8 +53,6 @@ export default function User() {
     };
 
     try {
-      console.log("PAYLOAD ENVIADO:", payload);
-
       const res = await fetch("http://localhost:5000/reservation/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -142,6 +140,35 @@ export default function User() {
     getTurnos();
   }, [sala, fecha]);
 
+  async function cargarReservas() {
+    const res = await fetch(
+      `http://localhost:5000/reservation/participant/${user.ci}`
+    );
+    const data = await res.json();
+    setReservas(data);
+  }
+
+  const programas = user?.programas || [];
+
+  const esDocente = programas.some((p) => p.rol === "docente");
+  const esAlumnoPosgrado = programas.some(
+    (p) => p.rol === "alumno" && p.tipo === "posgrado"
+  );
+
+  const salasFiltradas = salas.filter((s) => {
+    if (s.tipo_sala === "libre") return true;
+
+    if (s.tipo_sala === "posgrado") {
+      return esDocente || esAlumnoPosgrado;
+    }
+
+    if (s.tipo_sala === "docente") {
+      return esDocente;
+    }
+
+    return false;
+  });
+
   return (
     <>
       <h1 style={{ textAlign: "center", marginTop: 20 }}>
@@ -198,7 +225,7 @@ export default function User() {
               >
                 <option value="">Seleccione...</option>
 
-                {salas.map((s) => (
+                {salasFiltradas.map((s) => (
                   <option key={s.nombre_sala} value={s.nombre_sala}>
                     {s.nombre_sala}
                   </option>
@@ -274,7 +301,10 @@ export default function User() {
         </Button>
         <Button
           variant="outline-success"
-          onClick={handleShowReservas}
+          onClick={() => {
+            cargarReservas();
+            setShowReservas(true);
+          }}
           disabled={user?.sancionado}
         >
           Ver reservas activas
@@ -285,7 +315,19 @@ export default function User() {
         <Modal.Header closeButton>
           <Modal.Title>Reservas activas</Modal.Title>
         </Modal.Header>
-        <Modal.Body>Aca irían las reservas del usuario (si tiene)</Modal.Body>
+        <Modal.Body>
+          {reservas.length === 0 && <p>No hay reservas activas</p>}
+          {reservas.map((r) => (
+            <div key={r.id_reserva} style={{ marginBottom: "10px" }}>
+              <strong>
+                {r.nombre_sala} - {r.edificio}
+              </strong>{" "}
+              <br />
+              Fecha: {new Date(r.fecha).toLocaleDateString()} <br />
+              Turno: {r.id_turno}
+            </div>
+          ))}
+        </Modal.Body>
       </Modal>
 
       <Modal show={showParticipantes} onHide={handleCloseParticipantes}>
