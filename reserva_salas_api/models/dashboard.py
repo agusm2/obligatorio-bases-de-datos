@@ -1,4 +1,5 @@
 import mysql.connector
+import datetime
 from database.db import get_db_connection
 
 
@@ -41,10 +42,24 @@ class Dashboard:
                 ORDER BY cantidad_reservas DESC
                 """
             )
-            return cur.fetchall() or []
+            rows = cur.fetchall() or []
+            # Ensure any time/datetime/timedelta objects are converted to strings
+            return cls._serialize_rows(rows)
         finally:
             cur.close()
             conn.close()
+
+    @classmethod
+    def _serialize_rows(cls, rows):
+        """Convert non-JSON-serializable values (date/time/datetime/timedelta) to strings.
+
+        This mutates and returns the same list for convenience.
+        """
+        for row in rows:
+            for k, v in list(row.items()):
+                if isinstance(v, (datetime.datetime, datetime.date, datetime.time, datetime.timedelta)):
+                    row[k] = str(v)
+        return rows
 
     @classmethod
     def avg_participants_per_room(cls):
