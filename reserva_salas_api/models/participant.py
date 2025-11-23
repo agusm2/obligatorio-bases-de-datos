@@ -384,6 +384,21 @@ class Participant:
             cur.close()
             conn.close()
 
+    @classmethod
+    def get_by_email(cls, email):
+        """Devuelve un Participant a partir del email (o None si no existe)."""
+        conn = get_db_connection()
+        cur = conn.cursor(dictionary=True)
+        try:
+            cur.execute(
+                "SELECT ci, nombre, apellido, email FROM Participante WHERE email=%s",
+                (email,),
+            )
+            row = cur.fetchone()
+        finally:
+            cur.close()
+            conn.close()
+        return cls.from_row(row)
         # rowcount puede ser -1 en algunos drivers; normalizamos a int cuando es posible
         try:
             deleted = int(deleted) if deleted is not None else 0
