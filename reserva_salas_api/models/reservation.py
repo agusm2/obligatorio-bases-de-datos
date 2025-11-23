@@ -297,3 +297,24 @@ class Reservation:
             cur.close()
             conn.close()
         return rows
+    
+    @classmethod
+    def update_asistencia(cls, id_reserva, ci_participante, asistencia):
+        conn = get_db_connection()
+        cur = conn.cursor()
+        try:
+            cur.execute(
+                """
+                UPDATE Reserva_participante
+                SET asistencia = %s
+                WHERE id_reserva = %s AND ci_participante = %s
+                """,
+                (1 if asistencia else 0, id_reserva, ci_participante),
+            )
+            if cur.rowcount == 0:
+                return None
+            conn.commit()
+            return True
+        finally:
+            cur.close()
+            conn.close()

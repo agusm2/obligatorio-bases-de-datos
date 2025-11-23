@@ -17,6 +17,18 @@ export default function ABMSanciones() {
     setSanciones(data);
   }
 
+  async function deleteSancion(ci, fecha_inicio, fecha_fin) {
+    const res = await fetch(`http://localhost:5000/participant/${ci}/sancion`, {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ fecha_inicio, fecha_fin }),
+    });
+    if (!res.ok) {
+      throw new Error("Error al eliminar sanción");
+    }
+    await getSanciones();
+  }
+
   useEffect(() => {
     getSanciones();
   }, []);
@@ -68,7 +80,16 @@ export default function ABMSanciones() {
                       }}
                     />
                   </button>
-                  <button style={{ borderRadius: 5 }}>
+                  <button
+                    style={{ borderRadius: 5 }}
+                    onClick={() =>
+                      deleteSancion(
+                        s.ci_participante,
+                        s.fecha_inicio,
+                        s.fecha_fin
+                      )
+                    }
+                  >
                     <img
                       src={trashImg}
                       style={{
