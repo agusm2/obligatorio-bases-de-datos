@@ -29,4 +29,7 @@ def authenticate(data):
         user_dict["programas"] = []
 
     # Return dictionary including role and sancionado flag
+    if hasattr(user, "fecha_fin_sancion"):
+        user_dict["fecha_fin_sancion"] = user.fecha_fin_sancion
+
     return user_dict
