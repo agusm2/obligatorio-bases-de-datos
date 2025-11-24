@@ -1,6 +1,6 @@
 # Obligatorio Bases de Datos
 
-Trabajo obligatorio de Bases de Datos; Mateo Di Fortuna y Agustin Maldonado
+Trabajo obligatorio de Bases de Datos elaborado por Mateo Di Fortuna y Agustin Maldonado
 
 ## Instructivo para levantar la aplicación (backend + frontend)
 
