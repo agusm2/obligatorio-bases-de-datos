@@ -9,7 +9,7 @@ Este repositorio contiene dos componentes principales:
 - `reserva_salas_api` — API REST hecha con Flask (Python).
 - `reserva_salas_ui` — Interfaz web hecha con React + Vite.
 
-A continuación se muestran pasos para levantar cada parte en macOS.
+A continuación se muestran pasos para levantar cada parte.
 
 ### Requisitos
 
@@ -32,6 +32,9 @@ cd reserva_salas_api
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
+o (en Windows)
+python -m venv .venv
+.venv/Scripts/activate
 ```
 
 3. Instalar dependencias:
