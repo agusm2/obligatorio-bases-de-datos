@@ -36,6 +36,17 @@ y otras que solamente puedan acceder a esos datos.
 5. Elección de tecnologías para front-end y back-end.
 6. Diseño general de back-end (rutas, modelos y servicios) y front-end (componentes, páginas y contextos).
 7. Modificamos creación de participantes para que también se creen en la tabla de login.
-8. Actualizamos cómo se muestran los turnos al crear una reserva en base a su disponibilidad. 
+8. Actualizamos cómo se muestran los turnos al crear una reserva en base a su disponibilidad.
+9. Algunas consultas diseñadas por nosotros, consideramos que son originales y otorgan información valiosa al usuario; sin embargo, debido a como desarrollamos nuestra aplicación, no es posible representar esos resultados para dichas consultas.
 
 ### Bibliografía
+- Base de datos
+  - MySQL. (s.f.). MySQL. Oracle Corporation. https://www.mysql.com/ 
+- Back-end
+  - Python Software Foundation. (s.f.). Python. https://www.python.org/
+  - Pallets Projects. (s.f.). Flask documentation. https://flask.palletsprojects.com/en/stable/
+- Front-end
+  - Meta Platforms, Inc. (s.f.). React documentation. https://es.react.dev/
+  - React Bootstrap Contributors. (s.f.). React-Bootstrap documentation. https://react-bootstrap.netlify.app/
+- Iconos visuales
+  -   Fonticons, Inc. (s.f.). Font Awesome. https://fontawesome.com/
